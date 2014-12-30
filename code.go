@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"code.revolvingcow.com/revolvingcow/go-code/cmd"
+	"code.revolvingcow.com/revolvingcow/code/cmd"
 )
 
 // Main entry point to the application
