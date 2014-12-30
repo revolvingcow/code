@@ -71,12 +71,12 @@ func GetVersionControlSystems() []string {
 }
 
 func ConfigureEnvironment() {
-	systems := GetVersionControlSystems()
-
 	env := os.Getenv("CODE_VCS")
 	if env == "" {
 		os.Setenv("CODE_VCS", "git;hg;tf;bzr")
 	}
+
+	systems := GetVersionControlSystems()
 
 	// Configure VCS checking
 	for _, vcs := range systems {
