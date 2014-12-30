@@ -26,18 +26,20 @@ func NewApp() *App {
 		Stdin:     os.Stdin,
 		Stderr:    os.Stderr,
 		Stdout:    os.Stdout,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 }
 
 // Run the application
 func (a *App) Run() error {
+	ConfigureEnvironment()
+
 	if len(a.Args) < 1 {
 		a.Args = append(a.Args, "help")
 	}
 
 	executed := false
-	for _, s := range getVersionControlSystems() {
+	for _, s := range GetVersionControlSystems() {
 		// Determine if the directory is version controlled (skip if it is not)
 		err := isVersionControlled(s, a.Directory)
 		if err != nil {
@@ -58,14 +60,83 @@ func (a *App) Run() error {
 }
 
 // Get the working directory
-func getWorkingDirectory() string {
+func GetWorkingDirectory() string {
 	d, _ := os.Getwd()
 	return d
 }
 
 // Extract an array of version control systems available on the system
-func getVersionControlSystems() []string {
+func GetVersionControlSystems() []string {
 	return strings.Split(os.Getenv("CODE_VCS"), ";")
+}
+
+func ConfigureEnvironment() {
+	systems := GetVersionControlSystems()
+
+	env := os.Getenv("CODE_VCS")
+	if env == "" {
+		os.Setenv("CODE_VCS", "git;hg;tf;bzr")
+	}
+
+	// Configure VCS checking
+	for _, vcs := range systems {
+		key := fmt.Sprintf("CODE_%s_CHECK", strings.ToUpper(vcs))
+		env = os.Getenv(key)
+
+		// Temporarily define the subcommand `incoming` for known version control systems
+		if env == "" {
+			incoming := ""
+
+			switch vcs {
+			case "git":
+				incoming = "branch"
+				break
+			case "hg":
+				incoming = "branch"
+				break
+			case "bzr":
+				incoming = "root"
+				break
+			case "tf":
+				incoming = "branches ."
+				break
+			}
+
+			if incoming != "" {
+				os.Setenv(key, incoming)
+			}
+		}
+	}
+
+	// Configure VCS incoming
+	for _, vcs := range systems {
+		key := fmt.Sprintf("CODE_%s_INCOMING", strings.ToUpper(vcs))
+		env = os.Getenv(key)
+
+		// Temporarily define the subcommand `incoming` for known version control systems
+		if env == "" {
+			incoming := ""
+
+			switch vcs {
+			case "git":
+				incoming = "log ..@{u}"
+				break
+			case "hg":
+				incoming = "incoming"
+				break
+			case "bzr":
+				incoming = "missing"
+				break
+			case "tf":
+				incoming = "history -r -stopafter:1 -version:W~T ."
+				break
+			}
+
+			if incoming != "" {
+				os.Setenv(key, incoming)
+			}
+		}
+	}
 }
 
 // Determine if the directory is part of the version control system

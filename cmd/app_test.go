@@ -19,7 +19,7 @@ func TestExtension(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
@@ -40,7 +40,7 @@ func TestRawCommand(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
@@ -61,11 +61,11 @@ func TestMissingCheck(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
-	if err == nil {
+	if err != nil {
 		t.FailNow()
 	}
 }
@@ -82,7 +82,7 @@ func TestMissingCommand(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
@@ -104,7 +104,7 @@ func TestMissingRepository(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
@@ -125,7 +125,7 @@ func TestNoArguments(t *testing.T) {
 		Stdin:     &buffer,
 		Stderr:    &buffer,
 		Stdout:    &buffer,
-		Directory: getWorkingDirectory(),
+		Directory: GetWorkingDirectory(),
 	}
 
 	err := app.Run()
