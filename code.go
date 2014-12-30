@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"code.revolvingcow.com/revolvingcow/go-code/cmd"
 )
@@ -11,8 +10,8 @@ import (
 func main() {
 	err := cmd.NewApp().Run()
 
+	// If there was an error report and exit
 	if err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 }
