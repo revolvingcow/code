@@ -1,13 +1,58 @@
 package cmd
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+)
+
+var (
+	EnvironmentVariables = map[string]string{
+		"CODE_VCS": "git;hg;tf;bzr",
+
+		"CODE_GIT_ADD":      "add",
+		"CODE_GIT_CHECK":    "branch",
+		"CODE_GIT_INCOMING": "log ..@{u}",
+		"CODE_GIT_MERGE":    "merge",
+		"CODE_GIT_MV":       "mv",
+		"CODE_GIT_PULL":     "fetch",
+		"CODE_GIT_PUSH":     "push",
+		"CODE_GIT_RM":       "rm",
+		"CODE_GIT_UPDATE":   "pull",
+
+		"CODE_HG_ADD":      "add",
+		"CODE_HG_CHECK":    "branch",
+		"CODE_HG_INCOMING": "incoming",
+		"CODE_HG_MERGE":    "merge",
+		"CODE_HG_MV":       "mv",
+		"CODE_HG_PULL":     "pull",
+		"CODE_HG_PUSH":     "push",
+		"CODE_HG_RM":       "rm",
+		"CODE_HG_UPDATE":   "pull -u",
+
+		"CODE_BZR_ADD":      "add",
+		"CODE_BZR_CHECK":    "root",
+		"CODE_BZR_INCOMING": "missing",
+		"CODE_BZR_MERGE":    "merge",
+		"CODE_BZR_MV":       "mv",
+		"CODE_BZR_PULL":     "pull",
+		"CODE_BZR_PUSH":     "push",
+		"CODE_BZR_RM":       "rm",
+		"CODE_BZR_UPDATE":   "update",
+
+		"CODE_TF_ADD":      "add",
+		"CODE_TF_CHECK":    "branches .",
+		"CODE_TF_INCOMING": "history -r -stopafter:1 -version:W~T .",
+		"CODE_TF_MERGE":    "merge",
+		"CODE_TF_MV":       "rename",
+		"CODE_TF_PULL":     "get -preview",
+		"CODE_TF_PUSH":     "checkin",
+		"CODE_TF_RM":       "delete",
+		"CODE_TF_UPDATE":   "get",
+	}
 )
 
 // The application
@@ -71,70 +116,11 @@ func GetVersionControlSystems() []string {
 }
 
 func ConfigureEnvironment() {
-	env := os.Getenv("CODE_VCS")
-	if env == "" {
-		os.Setenv("CODE_VCS", "git;hg;tf;bzr")
-	}
+	for key, value := range EnvironmentVariables {
+		env := os.Getenv(key)
 
-	systems := GetVersionControlSystems()
-
-	// Configure VCS checking
-	for _, vcs := range systems {
-		key := fmt.Sprintf("CODE_%s_CHECK", strings.ToUpper(vcs))
-		env = os.Getenv(key)
-
-		// Temporarily define the subcommand `incoming` for known version control systems
-		if env == "" {
-			incoming := ""
-
-			switch vcs {
-			case "git":
-				incoming = "branch"
-				break
-			case "hg":
-				incoming = "branch"
-				break
-			case "bzr":
-				incoming = "root"
-				break
-			case "tf":
-				incoming = "branches ."
-				break
-			}
-
-			if incoming != "" {
-				os.Setenv(key, incoming)
-			}
-		}
-	}
-
-	// Configure VCS incoming
-	for _, vcs := range systems {
-		key := fmt.Sprintf("CODE_%s_INCOMING", strings.ToUpper(vcs))
-		env = os.Getenv(key)
-
-		// Temporarily define the subcommand `incoming` for known version control systems
-		if env == "" {
-			incoming := ""
-
-			switch vcs {
-			case "git":
-				incoming = "log ..@{u}"
-				break
-			case "hg":
-				incoming = "incoming"
-				break
-			case "bzr":
-				incoming = "missing"
-				break
-			case "tf":
-				incoming = "history -r -stopafter:1 -version:W~T ."
-				break
-			}
-
-			if incoming != "" {
-				os.Setenv(key, incoming)
-			}
+		if env == "" && value != "" {
+			os.Setenv(key, value)
 		}
 	}
 }
@@ -146,11 +132,16 @@ func isVersionControlled(vcs, directory string) error {
 		return errors.New(fmt.Sprintf("CODE_%s_CHECK is not set", strings.ToUpper(vcs)))
 	}
 
+	err := os.Chdir(directory)
+	if err != nil {
+		return err
+	}
+
 	// Execute the command and swallow any output
-	var out bytes.Buffer
+	//var out bytes.Buffer
 	actions := strings.Split(env, " ")
 	cmd := exec.Command(vcs, actions...)
-	cmd.Stdout = &out
+	//cmd.Stdout = &out
 
 	return cmd.Run()
 }
