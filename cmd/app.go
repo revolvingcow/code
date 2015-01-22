@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 )
 
@@ -45,7 +46,7 @@ var (
 
 		"CODE_TF_ADD":      "add",
 		"CODE_TF_CHECK":    "branches .",
-		"CODE_TF_INCOMING": "history -r -stopafter:1 -version:W~T .",
+		"CODE_TF_INCOMING": fmt.Sprintf("history -r -stopafter:1 -version:W%s~T .", path.Base(GetWorkingDirectory())),
 		"CODE_TF_MERGE":    "merge",
 		"CODE_TF_MV":       "rename",
 		"CODE_TF_PULL":     "get -preview",
@@ -138,10 +139,8 @@ func isVersionControlled(vcs, directory string) error {
 	}
 
 	// Execute the command and swallow any output
-	//var out bytes.Buffer
 	actions := strings.Split(env, " ")
 	cmd := exec.Command(vcs, actions...)
-	//cmd.Stdout = &out
 
 	return cmd.Run()
 }
