@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
 )
 
@@ -46,7 +47,7 @@ var (
 
 		"CODE_TF_ADD":      "add",
 		"CODE_TF_CHECK":    "branches .",
-		"CODE_TF_INCOMING": fmt.Sprintf("history -r -stopafter:1 -version:W%s~T .", path.Base(GetWorkingDirectory())),
+		"CODE_TF_INCOMING": "history -r -version:W~T .",
 		"CODE_TF_MERGE":    "merge",
 		"CODE_TF_MV":       "rename",
 		"CODE_TF_PULL":     "get -preview",
@@ -156,6 +157,11 @@ func (a *App) executeSubcommand(vcs, subcommand string, args ...string) error {
 		command = append(command, subcommand)
 		command = append(command, args...)
 	} else {
+		// I didn't want to do this but TEE on non-windows sucks
+		if vcs == "tf" && subcommand == "incoming" && (runtime.GOOS == "darwin" || runtime.GOOS == "linux") {
+			env = strings.Replace(env, "W~T", fmt.Sprintf("W%s~T", path.Base(a.Directory)), -1)
+		}
+
 		actions := strings.Split(env, " ")
 		command = append(command, actions...)
 		command = append(command, args...)
